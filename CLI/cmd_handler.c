@@ -6,6 +6,7 @@
 
 #define TOK_COUNT 4
 #define S_COUNT 6
+#define FINAL_STATE_COUNT 3
 
 
 
@@ -16,6 +17,12 @@ Command commands[] = {
     {ERR, error_handler}
 };
 
+State final_states[] = {GTL,DDTL,ERR};
+typedef struct {
+    State final_state;
+    int tokens_consumed;
+} ParseResult;
+
 typedef enum {
     TSKL,
     SHOW,
@@ -25,7 +32,7 @@ typedef enum {
 
 char* id;
 
-State finite_state_machine(int token_count,char* tokens[]);
+ParseResult finite_state_machine(int token_count,char* tokens[]);
 Token map_string_to_token(char* string);
 
 State transitions[S_COUNT][TOK_COUNT]= {
@@ -37,6 +44,8 @@ State transitions[S_COUNT][TOK_COUNT]= {
     {ERR,ERR,ERR,ERR}
 };
 void print_transition_matrix(State matrix[S_COUNT][TOK_COUNT],int cols, int rows);
+
+int is_final_state(State s);
 
 
 int main(int argc, char* argv[]){    
@@ -55,8 +64,11 @@ int bye_handler(){
 int handle_command(int argc, char* argv[]){
 
     // we first need to parse the full command to see what state we landed on
-    State reached_state = finite_state_machine(argc,argv);
+    ParseResult parse_result = finite_state_machine(argc,argv);
+    State reached_state = parse_result.final_state;
     printf("reached this state : %d\n", reached_state);
+    
+    printf("tokens consumed : %d number of args %d\n", parse_result.tokens_consumed, argc);
     dispatch(reached_state);
     // Command command = {"hello",hello_handler};
     
@@ -66,11 +78,12 @@ int handle_command(int argc, char* argv[]){
     return 0;
 }
 
-State finite_state_machine(int token_count,char* tokens[]){
+ParseResult finite_state_machine(int token_count,char* tokens[]){
 
     State initial = CMD;
     State current_state = CMD;
-    for (int i = 1; i < token_count; i++){
+    int i = 1;
+    while (!is_final_state(current_state) && current_state != ERR){
         if (current_state == ERR){
             printf("error state\n");
             break;
@@ -81,9 +94,9 @@ State finite_state_machine(int token_count,char* tokens[]){
         printf("token is: %d literal %s\n",token,tokens[i]);
 
         current_state = transitions[current_state][token];
+        i++;
     }
-    printf("return\n");
-    return current_state;
+    return (ParseResult){current_state,i};
 }
 
 Token map_string_to_token(char* string){
@@ -128,5 +141,14 @@ void print_transition_matrix(State matrix[S_COUNT][TOK_COUNT],int cols, int rows
 
 int deleteTaskList(){
     sendDeleteTaskList(id);
+    return 0;
+}
+
+int is_final_state(State s){
+    for (int i = 0; i < FINAL_STATE_COUNT; i++){
+        if (s == final_states[i]){
+            return 1;
+        }
+    }
     return 0;
 }
