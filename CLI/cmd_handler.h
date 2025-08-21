@@ -1,0 +1,24 @@
+#ifndef CMD_HANDLER
+#define CMD_HANDLER
+
+typedef int (*command_fnc)();
+typedef struct {
+    int name;
+    command_fnc func;
+} Command;
+typedef enum {
+    CMD,
+    TL,
+    GTL,
+    DTL,
+    DDTL,
+    ERR
+} State;
+
+int handle_command(int argc, char* argv[]);
+int deleteTaskList();
+int error_handler();
+void dispatch(State s);
+
+
+#endif
