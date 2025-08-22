@@ -209,7 +209,7 @@ int updateTaskList(){
         fprintf(stderr,"error : title or description must be provided for update");
         return 1;
     }
-    sendPutTaskList(params.task_list_id,params.task_list_title,params.task_list_desc);
+    sendPatchTaskList(params.task_list_id,params.task_list_title,params.task_list_desc);
     printf("update handler\n");
     return 0;
 }

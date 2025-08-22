@@ -57,4 +57,18 @@ public class TaskListServiceImpl implements TaskListService {
         retrievedTaskL.setUpdated(LocalDateTime.now());
         return taskListRepository.save(retrievedTaskL);
     }
+
+    @Transactional
+    @Override
+    public TaskList patchTaskList(UUID id, TaskList tasklist) {
+        TaskList retrievedTaskL = taskListRepository.findById(id).orElseThrow(()->new IllegalArgumentException("Task list does not exist in order to be updated"));
+        if (tasklist.getTitle() != null) {
+            retrievedTaskL.setTitle(tasklist.getTitle());
+        }
+        if (tasklist.getDescription() != null) {
+            retrievedTaskL.setDescription(tasklist.getDescription());
+        }
+        retrievedTaskL.setUpdated(LocalDateTime.now());
+        return taskListRepository.save(retrievedTaskL);
+    }
 }

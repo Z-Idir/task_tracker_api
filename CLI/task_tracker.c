@@ -104,12 +104,18 @@ HttpResponse http_request(const char *method, const char *url, const char *body)
     } else if (strcmp(method, "DELETE") == 0) {
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
     } else if (strcmp(method, "PUT") == 0) {
-        printf("matched to the put method\n");
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_PUT, 1L);
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        if (body) curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
+    } else if (strcmp(method, "PATCH") == 0) {
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        // curl_easy_setopt(curl, CURLOPT_PATCH, 1L);
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
         if (body) curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
     } 
 
@@ -132,7 +138,7 @@ int sendPostTaskList(char *title, char *description){
     printf("fetched : %s\n",res.body);
     return 0;
 }
-int sendPutTaskList(char *id, char *title, char *description){
+int sendPatchTaskList(char *id, char *title, char *description){
     char jsonBody[1000];
     size_t remaining = sizeof(jsonBody);
     char *ptr = jsonBody;
@@ -159,7 +165,7 @@ int sendPutTaskList(char *id, char *title, char *description){
 
     char endpoint[200];
     snprintf(endpoint,sizeof(endpoint),"%s/%s",API_BASE,id);
-    HttpResponse res = http_request("PUT",endpoint,jsonBody);
+    HttpResponse res = http_request("PATCH",endpoint,jsonBody);
 
     printf("fetched: %s\n",res.body);
     return 0;
