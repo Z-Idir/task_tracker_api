@@ -4,9 +4,9 @@
 #include "cmd_handler.h"
 #include "task_tracker.h"
 
-#define TOK_COUNT 6
-#define S_COUNT 9
-#define FINAL_STATE_COUNT 5
+#define TOK_COUNT 8
+#define S_COUNT 15
+#define FINAL_STATE_COUNT 9
 
 
 
@@ -16,22 +16,28 @@ Command commands[] = {
     {DDTL, deleteTaskList},
     {CTL, createTaskList},
     {UTL, updateTaskList},
+    {GTS, getTasksForTaskList},
+    {CT, createTask},
+    {UT, updateTask},
+    {DT, deleteTask},
     {ERR, error_handler}
 };
 
-State final_states[] = {GTL,DDTL,ERR,CTL,UTL};
+State final_states[] = {GTL,DDTL,ERR,CTL,UTL,GTS,CT,UT,DT};
 typedef struct {
     State final_state;
     int tokens_consumed;
 } ParseResult;
 
 typedef enum {
-    TSKL,
-    SHOW,
-    DEL,
-    ID,
-    CR,
-    UP
+    TSKL, // taskLists
+    SHOW, // show
+    DEL, // delete
+    ID, // rand string
+    CR, // create
+    UP,// update
+    TASKS,// tasks
+    TLID // -tl-id
 } Token;
 
 typedef struct params {
@@ -50,16 +56,39 @@ char* id;
 ParseResult finite_state_machine(int token_count,char* tokens[]);
 Token map_string_to_token(char* string);
 
-State transitions[S_COUNT][TOK_COUNT]= {
-    {TL,ERR,ERR,ERR,ERR,ERR},
-    {ERR,GTL,DTL,ERR,CTL,UTL},
-    {ERR,ERR,ERR,ERR,ERR,ERR},
-    {ERR,ERR,ERR,DDTL,ERR,ERR},
-    {ERR,ERR,ERR,ERR,ERR,ERR},
-    {ERR,ERR,ERR,ERR,ERR,ERR},
-    {ERR,ERR,ERR,ERR,ERR,ERR},
-    {ERR,ERR,ERR,ERR,ERR,ERR}
+State transitions[S_COUNT][TOK_COUNT] = {
+    // CMD
+    { TL,   ERR, ERR, ERR, ERR, ERR, TSKS, ERR },
+    // TL
+    { ERR,  GTL, DTL, ERR, CTL, UTL, ERR,  ERR },
+    // GTL
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR },
+    // DTL
+    { ERR,  ERR, ERR, DDTL,ERR, ERR, ERR,  ERR },
+    // READY
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR },
+    // DDTL
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR },
+    // UTL
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR },
+    // TSKS
+    { ERR,  ERR, DT,  ERR, ERR, UT,  ERR,  ETLID },
+    // TLS
+    { ERR,  GTS, ERR, ERR, CT,  ERR, ERR,  ERR },
+    // GTS
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR },
+    // ETLID
+    { ERR,  ERR, ERR, TLS, ERR, ERR, ERR,  ERR },
+    // CT
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR },
+    // UT
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR },
+    // DT
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR },
+    // ERR
+    { ERR,  ERR, ERR, ERR, ERR, ERR, ERR,  ERR }
 };
+
 void print_transition_matrix(State matrix[S_COUNT][TOK_COUNT],int cols, int rows);
 int parse_options(int argc, char *argv[], Parameters *output);
 int is_final_state(State s);
@@ -86,7 +115,7 @@ int handle_command(int argc, char* argv[]){
     State reached_state = parse_result.final_state;
     // printf("reached this state : %d\n", reached_state);
     int tokens_consumed = parse_result.tokens_consumed;
-
+    // print_transition_matrix(transitions,100,100);
     char **remaining_args = argv + tokens_consumed;
     int remaining_arg_count = argc - tokens_consumed;
     // for (int i = 0; i < argc - tokens_consumed; i++){
@@ -154,6 +183,12 @@ Token map_string_to_token(char* string){
     else if (strcmp("update",string) == 0){
         token = UP;
     }
+    else if (strcmp("tasks",string) == 0){
+        token = TASKS;
+    }
+    else if (strcmp("-tl-id",string) == 0){
+        token = TLID;
+    }
     id = string;
     return token;
 }
@@ -172,9 +207,9 @@ void dispatch(State s){
 
 void print_transition_matrix(State matrix[S_COUNT][TOK_COUNT],int cols, int rows){
     printf("printing the matrix\n");
-        for (int i = 0; i < TOK_COUNT; i++){
+        for (int i = 0; i < S_COUNT; i++){
             printf("|");
-            for (int j = 0; j < S_COUNT; j++){
+            for (int j = 0; j < TOK_COUNT; j++){
                 printf(" %d |",transitions[i][j]);
             }
             printf("\n ");
@@ -240,6 +275,27 @@ int parse_options(int argc, char *argv[], Parameters *output){
             i++;
         }
     }
+    return 0;
+}
+
+int getTasksForTaskList(){
+    printf(" getting the tasks for the specified list %s\n",id);
+    sendGetTasksForTaskList(id);
+    return 0;
+}
+
+int deleteTask(){
+    printf("deleting task\n");
+
+    return 0;
+}
+int updateTask(){
+    printf("updating task\n");
+
+    return 0;
+}
+int createTask(){
+    printf("creating task\n");
     return 0;
 }
 

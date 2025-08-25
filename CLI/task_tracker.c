@@ -6,11 +6,14 @@
 #include "cmd_handler.h"
 
 #define API_BASE "http://192.168.80.1:8080/api/task-lists"
+#define MAX_ENDPOINT_SIZE 300
 
 typedef struct {
     long status_code;
     char *body;
 } HttpResponse;
+
+
 
 HttpResponse http_request(const char *method, const char *url, const char *body);
 
@@ -38,7 +41,7 @@ int sendGetTaskLists(){
     return 0;
 }
 int sendGetTaskList(char *id){
-    char endpoint[1000];
+    char endpoint[MAX_ENDPOINT_SIZE];
     strcat(endpoint,API_BASE);
     strcat(endpoint,"/");
     strcat(endpoint,id);
@@ -49,7 +52,7 @@ int sendGetTaskList(char *id){
 int sendDeleteTaskList(char *id){
     CURL *curl = curl_easy_init();
     if(curl){
-        char endpoint[300] = API_BASE;
+        char endpoint[MAX_ENDPOINT_SIZE] = API_BASE;
         strcat(endpoint,"/");
         strcat(endpoint,id);
         curl_easy_setopt(curl,CURLOPT_URL, endpoint);
@@ -163,11 +166,27 @@ int sendPatchTaskList(char *id, char *title, char *description){
     ptr += written;
     remaining -= written;
 
-    char endpoint[200];
+    char endpoint[MAX_ENDPOINT_SIZE];
     snprintf(endpoint,sizeof(endpoint),"%s/%s",API_BASE,id);
     HttpResponse res = http_request("PATCH",endpoint,jsonBody);
 
     printf("fetched: %s\n",res.body);
+    return 0;
+}
+
+int sendGetTasksForTaskList(char *id){
+    char endpoint[MAX_ENDPOINT_SIZE];
+    snprintf(endpoint,sizeof endpoint, "%s/%s/tasks",API_BASE,id);
+    HttpResponse res = http_request("GET",endpoint,NULL);
+
+    printf("fetched: %s\n",res.body);
+    return 0;
+}
+
+int sendPostTask(char *tlid){
+    char endpoint[MAX_ENDPOINT_SIZE];
+    snprintf(endpoint,sizeof endpoint, "%s/%s/tasks",API_BASE,tlid);
+    HttpResponse res = http_request("POST",endpoint,NULL);
     return 0;
 }
 
