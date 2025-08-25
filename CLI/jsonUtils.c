@@ -5,22 +5,22 @@
 #include "jsonUtils.h"
 
 int main(){
-    JsonContainer **json ;
-    createJsonObject(json, "name","idir");
-    printf("after creation");
-    printJson(*json);
+    JsonContainer *json = NULL ;
+    createJsonObject(&json, "name","idir");
+    addField(&json,"age","66");
+    printJson(json);
     return 0;
 }
 
-int createJsonObject(JsonContainer **json ,char *name, char *value ){
+int createJsonObject(JsonContainer **json){
 
-    *json = (JsonContainer*) malloc(sizeof **json);
-    if(json == NULL){
+    *json = malloc(sizeof **json);
+    if(*json == NULL){
         perror("malloc failure");
         return 1;
     }
-    (*json)->field_name = name;
-    (*json)->field_value = value;
+    (*json)->field_name = NULL;
+    (*json)->value.
     (*json)->next = NULL;
     return 0;
 }
@@ -44,14 +44,22 @@ int addField(JsonContainer **head,char *name, char *value){
 
 void printJson(JsonContainer *head){
     if(head == NULL){
-        printf("json object refrence is null\n");
+        printf("json object reference is null\n");
         return;
     }
     printf("{");
     JsonContainer *iter = head;
-    while (iter->next != NULL){
+    while (iter != NULL){
         printf("\"%s\":\"%s\",",iter->field_name,iter->field_value);
         iter = iter->next;
     }
+    printf("\b}");
     
+}
+
+int addStringValue(JsonContainer **json ,char *name, char *value ){
+    return 0;
+}
+int addNumberValue(JsonContainer **json ,char *name, double value ){
+    return 0;
 }
